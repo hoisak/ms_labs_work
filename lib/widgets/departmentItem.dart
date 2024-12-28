@@ -23,7 +23,6 @@ class DepartmentItem extends ConsumerWidget {
       splashColor: Theme.of(context).primaryColor,
       child: Container(
           padding: const EdgeInsets.all(16),
-
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [

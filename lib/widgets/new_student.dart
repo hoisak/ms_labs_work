@@ -67,19 +67,24 @@ class _NewStudentState extends ConsumerState<NewStudent> {
       return;
     }
 
-    final student = Student(
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
-      department: _selectedDepartment,
-      grade: int.tryParse(_gradeController.text)!,
-      gender: _selectedGender,
-    );
-
     if (widget.student != null) {
+      final editedStudent = Student(
+          firstName: _firstNameController.text,
+          lastName: _lastNameController.text,
+          department: _selectedDepartment,
+          grade: int.tryParse(_gradeController.text)!,
+          gender: _selectedGender,
+          id: widget.student!.id);
+
+
       ref.read(studentsProvider.notifier).editStudent(
-          student, ref.read(studentsProvider).indexOf(widget.student!));
+          editedStudent, ref.read(studentsProvider).indexOf(widget.student!));
     } else {
-      ref.read(studentsProvider.notifier).addStudent(student);
+      ref.read(studentsProvider.notifier).addStudent(_firstNameController.text,
+          _lastNameController.text,
+          _selectedDepartment,
+          int.tryParse(_gradeController.text)!,
+          _selectedGender);
     }
 
     Navigator.pop(context);
@@ -113,7 +118,13 @@ class _NewStudentState extends ConsumerState<NewStudent> {
                     .map((item) => DropdownMenuItem(
                         value: item,
                         child: Row(
-                          children: [Icon(item.icon), const SizedBox(width: 5,), Text(item.name)],
+                          children: [
+                            Icon(item.icon),
+                            const SizedBox(
+                              width: 5,
+                            ),
+                            Text(item.name)
+                          ],
                         )))
                     .toList(),
                 onChanged: (value) {

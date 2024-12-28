@@ -16,9 +16,13 @@ class Students extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var myStudents = ref.watch(studentsProvider);
+    final isLoading =
+        ref.watch(studentsProvider.notifier.select((state) => state.isLoading));
 
     if (department != null) {
-      myStudents = myStudents.where((std) => std.department.id == department?.id).toList();
+      myStudents = myStudents
+          .where((std) => std.department.id == department?.id)
+          .toList();
     }
 
     void openAddStudentOverlay() {
@@ -33,8 +37,8 @@ class Students extends ConsumerWidget {
           isScrollControlled: true,
           context: context,
           builder: (ctx) => NewStudent(
-            student: student,
-          ));
+                student: student,
+              ));
     }
 
     Widget mainContent = const Center(child: Text('No students found'));
@@ -43,8 +47,7 @@ class Students extends ConsumerWidget {
       mainContent = StudentList(
           students: myStudents,
           onEditStudent: openEditStudentOverlay,
-          onUndo: onUndo
-      );
+          onUndo: onUndo);
     }
 
     return Scaffold(
@@ -59,7 +62,10 @@ class Students extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          Expanded(child: mainContent),
+          Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : mainContent),
         ],
       ),
     );
