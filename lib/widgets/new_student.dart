@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:ms_lab/data/dummy_data.dart';
 import 'package:ms_lab/models/student.dart';
 
-class NewStudent extends StatefulWidget {
-  const NewStudent({super.key, required this.onAdd, this.student});
+import '../models/department.dart';
+import '../providers/student_provider.dart';
 
-  final void Function(Student student) onAdd;
+class NewStudent extends ConsumerStatefulWidget {
+  const NewStudent({super.key, this.student});
+
   final Student? student;
 
   @override
-  State<StatefulWidget> createState() {
+  _NewStudentState createState() {
     return _NewStudentState();
   }
 }
 
-class _NewStudentState extends State<NewStudent> {
+class _NewStudentState extends ConsumerState<NewStudent> {
   late final _firstNameController =
       TextEditingController(text: widget.student?.firstName ?? '');
   late final _lastNameController =
       TextEditingController(text: widget.student?.lastName ?? '');
   late final _gradeController =
       TextEditingController(text: widget.student?.grade.toString() ?? '');
-  Department _selectedDepartment = Department.it;
+  Department _selectedDepartment = departments[0];
   Gender _selectedGender = Gender.female;
 
   @override
@@ -63,24 +67,19 @@ class _NewStudentState extends State<NewStudent> {
       return;
     }
 
-    if (widget.student != null) {
-      Student updatedStudent = widget.student!;
-      updatedStudent.firstName = _firstNameController.text;
-      updatedStudent.lastName = _lastNameController.text;
-      updatedStudent.department = _selectedDepartment;
-      updatedStudent.grade = int.tryParse(_gradeController.text)!;
-      updatedStudent.gender = _selectedGender;
+    final student = Student(
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      department: _selectedDepartment,
+      grade: int.tryParse(_gradeController.text)!,
+      gender: _selectedGender,
+    );
 
-      widget.onAdd(widget.student!);
+    if (widget.student != null) {
+      ref.read(studentsProvider.notifier).editStudent(
+          student, ref.read(studentsProvider).indexOf(widget.student!));
     } else {
-      widget.onAdd(
-        Student(
-            firstName: _firstNameController.text,
-            lastName: _lastNameController.text,
-            department: _selectedDepartment,
-            grade: int.tryParse(_gradeController.text)!,
-            gender: _selectedGender),
-      );
+      ref.read(studentsProvider.notifier).addStudent(student);
     }
 
     Navigator.pop(context);
@@ -110,9 +109,12 @@ class _NewStudentState extends State<NewStudent> {
               child: DropdownButton<Department>(
                 isExpanded: true,
                 value: _selectedDepartment,
-                items: Department.values
-                    .map((item) =>
-                        DropdownMenuItem(value: item, child: Text(item.name)))
+                items: departments
+                    .map((item) => DropdownMenuItem(
+                        value: item,
+                        child: Row(
+                          children: [Icon(item.icon), const SizedBox(width: 5,), Text(item.name)],
+                        )))
                     .toList(),
                 onChanged: (value) {
                   if (value == null) return;
@@ -141,7 +143,8 @@ class _NewStudentState extends State<NewStudent> {
             ),
           ],
         ),
-        ElevatedButton(onPressed: _submitStudentData, child: const Text('Add Student'))
+        ElevatedButton(
+            onPressed: _submitStudentData, child: const Text('Add Student'))
       ]),
     );
   }
